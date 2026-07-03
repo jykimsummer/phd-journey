@@ -159,12 +159,13 @@ function runDrumroll(chosen){
 }
 /* ---------- 4단계: 개봉 ---------- */
 function reveal(chosen){
+  const isStudy=Math.random()<0.5;   /* 50:50 순수 랜덤 */
   chosen.classList.add('open');
   drumText.classList.remove('on');
   if(navigator.vibrate)navigator.vibrate([120,50,200]);
   setTimeout(()=>{
-    stats.study++;womp();
-    showCard('study','📚','논문 쓰러가기 당첨~~','미래의 박사님, 오늘 한 페이지가 학위를 만듭니다 🔥');
+    if(isStudy){stats.study++;womp();showCard('study','📚','논문 쓰러가기 당첨~~','미래의 박사님, 오늘 한 페이지가 학위를 만듭니다 🔥');}
+    else{stats.rest++;fanfare();burstConfetti();showCard('rest','🛋️','오늘은 쉬기 당첨~~','축하합니다! 충전도 연구의 일부입니다 ☕<br>죄책감 없이 푹 쉬세요 🎉');}
   },500);
 }
 function showCard(type,emoji,title,msg){
@@ -178,7 +179,7 @@ function showCard(type,emoji,title,msg){
 }
 /* 세션 기록 표시 */
 (function(){const h=JSON.parse(sessionStorage.getItem('giftStats')||'{"study":0,"rest":0}');
-if(h.study>0)history.textContent=`오늘의 기록 — 📚 논문 쓰러 간 횟수 ${h.study}회`;})();
+if(h.study+h.rest>0)history.textContent=`오늘의 기록 — 📚 논문 ${h.study}회 · 🛋️ 쉬기 ${h.rest}회`;})();
 
 /* ---------- 폭죽 ---------- */
 const cv=document.getElementById('confetti'),cx=cv.getContext('2d');

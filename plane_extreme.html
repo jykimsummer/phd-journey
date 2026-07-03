@@ -312,14 +312,17 @@ function draw(){
 const quiz=document.getElementById('quiz'),qTag=document.getElementById('qTag'),qText=document.getElementById('qText'),
 qOpts=document.getElementById('qOpts'),qMsg=document.getElementById('qMsg'),rewardRow=document.getElementById('rewardRow');
 
-function openMathQuiz(){
- paused=true;quizTotal++;
+function makeAddQuiz(){
  const a=Math.floor(Math.random()*80)+17,b=Math.floor(Math.random()*80)+16;
- const mul=Math.random()<.4, m1=Math.floor(Math.random()*13)+12, m2=Math.floor(Math.random()*8)+3;
- const ans=mul?m1*m2:a+b, txt=mul?`${m1} × ${m2} = ?`:`${a} + ${b} = ?`;
+ const ans=a+b, txt=`${a} + ${b} = ?`;
  const opts=[ans];
  while(opts.length<4){const w=ans+[-11,-10,-2,-1,1,2,10,11][Math.floor(Math.random()*8)];if(w>0&&!opts.includes(w))opts.push(w);}
  opts.sort(()=>Math.random()-.5);
+ return {txt,ans,opts};
+}
+function openMathQuiz(){
+ paused=true;quizTotal++;
+ const {txt,ans,opts}=makeAddQuiz();
  showQuiz('⭐ 암산 도전!',txt,opts.map(String),opts.indexOf(ans),ok=>{
   if(ok){quizRight++;rows=Math.min(6,rows+1);rowExp=10;energy=Math.min(100,energy+15);ebar.style.width=energy+'%';}
   closeQuiz();});
@@ -327,8 +330,8 @@ function openMathQuiz(){
 chargeBtn.addEventListener('click',()=>{
  if(chargeBtn.disabled||!running||paused)return;
  paused=true;quizTotal++;
- const q=nextSem();
- showQuiz('❤️ SEM 퀴즈 충전!',q.q,q.o.map((o,i)=>`${'①②③④'[i]} ${o}`),q.a,ok=>{
+ const {txt,ans,opts}=makeAddQuiz();
+ showQuiz('❤️ 충전 암산!',txt,opts.map(String),opts.indexOf(ans),ok=>{
   if(ok){quizRight++;rewardRow.classList.add('show');qMsg.textContent='보상을 선택하세요!';}
   else closeQuiz();});
  chargeCD=20;

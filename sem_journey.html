@@ -517,11 +517,15 @@ function drawHero(sx,gyBase,dir){
  cx.fillStyle='#2a8ad0';cx.fillRect(dir>0?28:-34,-53,6,4);
  /* 얼굴 */
  cx.fillStyle='#ffdcb0';cx.beginPath();cx.arc(0,-77,14,0,6.28);cx.fill();
+ /* 눈 */
  cx.fillStyle='#333';cx.beginPath();cx.arc(dir*4-3,-79,2,0,6.28);cx.arc(dir*4+4,-79,2,0,6.28);cx.fill();
- cx.beginPath();cx.arc(dir*3,-72,4,0,Math.PI);cx.stroke();
+ /* 코 */
+ cx.fillStyle='#e39a70';cx.beginPath();cx.arc(dir*2,-75,1.6,0,6.28);cx.fill();
+ /* 입 */
+ cx.strokeStyle='#c0504a';cx.lineWidth=2;cx.beginPath();cx.arc(dir*3,-73,4,0,Math.PI);cx.stroke();
  /* 머리카락 */
  cx.fillStyle=female?'#5a3a2a':'#2a2a2a';
- if(female){cx.beginPath();cx.arc(0,-82,14,Math.PI*.9,Math.PI*2.1);cx.fill();cx.fillRect(-14,-84,5,26);cx.fillRect(9,-84,5,26);}
+ if(female){cx.beginPath();cx.arc(0,-80,15,Math.PI,0);cx.fill();cx.fillRect(-15,-81,5,28);cx.fillRect(10,-81,5,28);}
  else{cx.beginPath();cx.arc(0,-83,13,Math.PI,0);cx.fill();}
  /* 🎓 박사모 (사각모+술) */
  cx.fillStyle='#1a1a2a';
