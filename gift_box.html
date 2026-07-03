@@ -49,6 +49,12 @@ h1{font-size:clamp(26px,7vw,40px);text-shadow:0 4px 12px rgba(0,0,0,.5);}
 /* 결과 카드 */
 #resultCard{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:20;background:rgba(10,5,30,.75);backdrop-filter:blur(3px);}
 #resultCard.show{display:flex;}
+#limitPop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:40;background:rgba(10,5,30,.82);backdrop-filter:blur(3px);}
+#limitPop.show{display:flex;}
+.limitcard{background:linear-gradient(160deg,#fff,#ffe9d6);color:#3a2a1a;border-radius:24px;padding:36px 30px;max-width:380px;width:86%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6);animation:rise .5s cubic-bezier(.34,1.56,.64,1);}
+.limitcard h2{font-size:26px;margin:12px 0 8px;}
+.limitcard p{font-size:16px;color:#7a6a55;line-height:1.55;}
+.limitcard button{margin-top:22px;background:linear-gradient(135deg,#7a6bff,#5aa9ff);color:#fff;border:none;font-size:17px;font-weight:700;padding:13px 34px;border-radius:30px;cursor:pointer;font-family:inherit;}
 .card{background:linear-gradient(160deg,#fff,#ffeeda);color:#3a2a1a;border-radius:24px;padding:38px 30px;max-width:420px;width:88%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6);animation:rise .7s cubic-bezier(.34,1.56,.64,1);}
 @keyframes rise{from{transform:translateY(120px) scale(.6);opacity:0}to{transform:none;opacity:1}}
 .card .emoji{font-size:70px;}
@@ -83,6 +89,12 @@ h1{font-size:clamp(26px,7vw,40px);text-shadow:0 4px 12px rgba(0,0,0,.5);}
 <div id="dimmer"></div>
 <div id="drumText">두구두구두구...</div>
 <div id="resultCard"><div class="card" id="cardInner"></div></div>
+<div id="limitPop"><div class="limitcard">
+  <div style="font-size:56px">🔮</div>
+  <h2>자꾸 해보지 마세요</h2>
+  <p>운명을 받아들이세요.<br>이미 세 번이나 뽑으셨어요 😌</p>
+  <button onclick="document.getElementById('limitPop').classList.remove('show')">알겠어요</button>
+</div></div>
 <canvas id="confetti"></canvas>
 <script>
 'use strict';
@@ -128,6 +140,12 @@ function enableChoice(){
 }
 function pick(e){
   if(phase!=='choose')return;
+  const c=JSON.parse(sessionStorage.getItem('giftStats')||'{"study":0,"rest":0}');
+  if(c.study+c.rest>=3){
+    document.getElementById('limitPop').classList.add('show');
+    tone(300,.3,'sawtooth',.12);if(navigator.vibrate)navigator.vibrate(80);
+    return;
+  }
   ac();
   phase='drum';
   const chosen=e.currentTarget;

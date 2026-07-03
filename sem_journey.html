@@ -19,10 +19,13 @@ html,body{height:100%;overflow:hidden;font-family:'Apple SD Gothic Neo','Malgun 
 .ccard{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.2);border-radius:18px;padding:16px 22px;cursor:pointer;transition:.2s;}
 .ccard.sel{border-color:#ffd54a;background:rgba(255,213,74,.15);transform:scale(1.06);}
 .ccard .ci{font-size:52px}.ccard .cn{font-weight:800;margin-top:6px;font-size:15px}
-.kids{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:330px;}
-.kcard{background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.2);border-radius:14px;padding:8px 10px;cursor:pointer;transition:.15s;min-width:62px;}
-.kcard.sel{border-color:#7bffb0;background:rgba(123,255,176,.16);transform:scale(1.05);}
-.kcard .ci{font-size:24px;line-height:1}.kcard .cn{font-weight:700;margin-top:3px;font-size:12px}
+.kidspin{display:flex;flex-direction:column;gap:12px;}
+.spin{display:flex;align-items:center;gap:10px;justify-content:center;}
+.spinlbl{font-size:16px;font-weight:800;min-width:52px;text-align:right;}
+.spbtn{width:38px;height:38px;border-radius:11px;border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;font-size:20px;cursor:pointer;font-family:inherit;font-weight:800;line-height:1;display:flex;align-items:center;justify-content:center;}
+.spbtn:active{background:rgba(255,255,255,.3);}
+.spnum{font-size:22px;font-weight:900;min-width:30px;text-align:center;}
+.spunit{font-size:15px;opacity:.85;}
 .inputWrap{display:flex;flex-direction:column;gap:6px;align-items:center;}
 .inputWrap label{font-size:14px;color:#ffd9a0;font-weight:700;}
 #profName{font-size:17px;padding:12px 18px;border-radius:14px;border:2px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;text-align:center;width:240px;font-family:inherit;outline:none;}
@@ -84,13 +87,21 @@ html,body{height:100%;overflow:hidden;font-family:'Apple SD Gothic Neo','Malgun 
   </div>
   <div class="inputWrap">
     <label>함께 가는 자녀 (손잡고 여정!)</label>
-    <div class="kids">
-      <div class="kcard sel" data-k="none"><div class="ci">🚶</div><div class="cn">혼자</div></div>
-      <div class="kcard" data-k="g1"><div class="ci">👧</div><div class="cn">딸 1</div></div>
-      <div class="kcard" data-k="g2"><div class="ci">👧👧</div><div class="cn">딸 2</div></div>
-      <div class="kcard" data-k="b1"><div class="ci">👦</div><div class="cn">아들 1</div></div>
-      <div class="kcard" data-k="b2"><div class="ci">👦👦</div><div class="cn">아들 2</div></div>
-      <div class="kcard" data-k="gb"><div class="ci">👧👦</div><div class="cn">딸·아들</div></div>
+    <div class="kidspin">
+      <div class="spin">
+        <span class="spinlbl">👧 딸</span>
+        <button class="spbtn" data-t="g" data-d="-1">−</button>
+        <span class="spnum" id="girlNum">0</span>
+        <button class="spbtn" data-t="g" data-d="1">＋</button>
+        <span class="spunit">명</span>
+      </div>
+      <div class="spin">
+        <span class="spinlbl">👦 아들</span>
+        <button class="spbtn" data-t="b" data-d="-1">−</button>
+        <span class="spnum" id="boyNum">0</span>
+        <button class="spbtn" data-t="b" data-d="1">＋</button>
+        <span class="spunit">명</span>
+      </div>
     </div>
   </div>
   <div class="inputWrap">
@@ -197,14 +208,21 @@ let charSel=0, profName='지도';
 document.querySelectorAll('.ccard').forEach(c=>c.addEventListener('click',()=>{
  document.querySelectorAll('.ccard').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');charSel=+c.dataset.c;}));
 /* 자녀 선택 */
-let kidSel='none', kids=[];
-document.querySelectorAll('.kcard').forEach(c=>c.addEventListener('click',()=>{
- document.querySelectorAll('.kcard').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');kidSel=c.dataset.k;}));
+let girlCount=0, boyCount=0, kids=[];
+const MAXK=5;
+document.querySelectorAll('.spbtn').forEach(b=>b.addEventListener('click',()=>{
+ const t=b.dataset.t, d=+b.dataset.d;
+ if(t==='g') girlCount=Math.max(0,Math.min(MAXK,girlCount+d));
+ else boyCount=Math.max(0,Math.min(MAXK,boyCount+d));
+ document.getElementById('girlNum').textContent=girlCount;
+ document.getElementById('boyNum').textContent=boyCount;
+}));
 function buildKids(){
- const map={none:[],g1:['g'],g2:['g','g'],b1:['b'],b2:['b','b'],gb:['g','b']};
- const list=map[kidSel]||[];
- /* 1명이면 왼손, 2명이면 양손(왼/오) */
- kids=list.map((t,i)=>({type:t, side:(list.length===1?-1:(i===0?-1:1))}));
+ const list=[];
+ for(let i=0;i<girlCount;i++)list.push('g');
+ for(let i=0;i<boyCount;i++)list.push('b');
+ /* 좌우 번갈아: 0→왼손, 1→오른손, 2→왼쪽 체인, 3→오른쪽 체인 ... */
+ kids=list.map((t,i)=>({type:t, side:(i%2===0?-1:1), chain:Math.floor(i/2)+1}));
 }
 
 const WORLD=5200, GOAL=5000, DUR=300;
@@ -391,13 +409,17 @@ function draw(){
 function drawKids(sx,gyBase){
  if(!kids.length)return;
  const legSwing=(keys.l||keys.r)?Math.sin(walkT)*6:0;
+ const gap=34;
  kids.forEach(k=>{
-  const gap=40,kx=sx+k.side*gap;
-  drawChild(kx,gyBase,k.type,k.side,legSwing);
-  /* 손잡기 선: 부모 옆구리 ↔ 아이 안쪽 손 */
+  const kx=sx+k.side*gap*k.chain;
+  /* 안쪽(부모 방향) 손잡기 대상: chain1=부모, 그 이상=이전 자녀 */
+  const startX=(k.chain===1)? sx+k.side*12 : (sx+k.side*gap*(k.chain-1))+k.side*13;
+  const startY=(k.chain===1)? gyBase-40 : gyBase-30;
+  /* 손잡기 선 */
   cx.strokeStyle='#ffdcb0';cx.lineWidth=4;cx.lineCap='round';
-  cx.beginPath();cx.moveTo(sx+k.side*12,gyBase-40);cx.lineTo(kx-k.side*9,gyBase-30);cx.stroke();
+  cx.beginPath();cx.moveTo(startX,startY);cx.lineTo(kx-k.side*9,gyBase-30);cx.stroke();
   cx.lineWidth=1;cx.lineCap='butt';
+  drawChild(kx,gyBase,k.type,k.side,legSwing);
  });
 }
 function drawChild(sx,gy,type,side,legSwing){
@@ -414,6 +436,7 @@ function drawChild(sx,gy,type,side,legSwing){
  /* 얼굴 */
  cx.fillStyle='#ffdcb0';cx.beginPath();cx.arc(0,-68,12,0,6.28);cx.fill();
  cx.fillStyle='#333';cx.beginPath();cx.arc(-4,-69,1.8,0,6.28);cx.arc(4,-69,1.8,0,6.28);cx.fill();
+ cx.fillStyle='#e39a70';cx.beginPath();cx.arc(0,-66,1.3,0,6.28);cx.fill();
  cx.strokeStyle='#333';cx.lineWidth=1.5;cx.beginPath();cx.arc(0,-64,4,0,Math.PI);cx.stroke();
  /* 머리 */
  cx.fillStyle=girl?'#6a4130':'#2a2a2a';
