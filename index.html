@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎓 박사 놀이터</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{min-height:100vh;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+background:linear-gradient(160deg,#e9edd2 0%,#dde3bf 50%,#cfd7ac 100%);color:#3c4029;
+display:flex;flex-direction:column;align-items:center;padding:44px 18px 40px;}
+h1{font-size:clamp(30px,8vw,46px);color:#4a4f2c;text-shadow:0 2px 6px rgba(120,130,80,.35);margin-bottom:8px;}
+.tag{color:#6a6f42;font-size:clamp(14px,4vw,17px);margin-bottom:34px;text-align:center;line-height:1.5;font-weight:600;}
+.cards{display:flex;flex-direction:column;gap:18px;width:100%;max-width:520px;}
+a.card{display:flex;align-items:center;gap:18px;background:rgba(255,255,255,.6);
+border:1px solid rgba(110,120,70,.3);border-radius:22px;padding:20px 22px;
+text-decoration:none;color:#3c4029;transition:transform .15s,background .15s;box-shadow:0 4px 14px rgba(120,130,80,.18);}
+a.card:active{transform:scale(.97);}
+a.card:hover{background:rgba(255,255,255,.82);}
+.emo{font-size:46px;flex-shrink:0;}
+.t h2{font-size:clamp(18px,5vw,22px);margin-bottom:5px;color:#3a3f26;}
+.t p{font-size:13.5px;color:#5f6440;line-height:1.5;}
+.badge{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:10px;margin-top:7px;margin-right:5px;}
+.b-luck{background:#ffb347;color:#5a3a00;}
+.b-hell{background:#ff5a6e;color:#fff;}
+.b-sem{background:#5aa9ff;color:#fff;}
+.foot{margin-top:36px;font-size:12.5px;color:#7a7f58;text-align:center;line-height:1.6;}
+</style>
+</head>
+<body>
+<h1>🎓 박사 놀이터</h1>
+<div class="tag">오늘 밤, 논문이냐 휴식이냐. 운명을 걸어라.</div>
+<div class="cards">
+  <a class="card" href="gift_box.html">
+    <div class="emo">🎁</div>
+    <div class="t"><h2>운명의 선물상자</h2>
+    <p>세 상자 중 하나를 선택! 두구두구... 열어보면 📚 논문 쓰러가기 당첨! (도망칠 수 없어요 😆)</p>
+    <span class="badge b-luck">무조건 논문</span></div>
+  </a>
+  <a class="card" href="plane_extreme.html">
+    <div class="emo">✈️</div>
+    <div class="t"><h2>논문작성배 비행기 전투</h2>
+    <p>통과하면 오늘 논문 안 써도 됨! 3분 생존하면 🛋️ 쉬기, 격추당하면 📚 논문. ⭐암산 + ❤️SEM 퀴즈 충전</p>
+    <span class="badge b-hell">논문 배틀</span><span class="badge b-sem">SEM</span></div>
+  </a>
+  <a class="card" href="sem_journey.html">
+    <div class="emo">💦</div>
+    <div class="t"><h2>박사의 여정 : SEM 퀴즈</h2>
+    <p>SEM 어디까지 알고 있니? 물총으로 지식의 벽을 부수고 졸업장까지! 자녀와 손잡고 캠퍼스를 달려요 🎓</p>
+    <span class="badge b-sem">SEM 퀴즈</span><span class="badge b-luck">졸업 기원</span></div>
+  </a>
+</div>
+<div class="foot">각 게임 오른쪽 위 🏠 메뉴 버튼으로 돌아올 수 있어요</div>
+</body>
+</html>

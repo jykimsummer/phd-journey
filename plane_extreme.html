@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>✈️ 논문작성배 비행기 전투</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{height:100%;overflow:hidden;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#05060f;color:#fff;}
+.topmenu{position:fixed;top:10px;right:10px;z-index:100;display:flex;gap:8px;}
+.topmenu button,.topmenu a{background:rgba(70,50,130,.55);border:1px solid rgba(255,255,255,.5);color:#fff;padding:7px 12px;border-radius:20px;text-decoration:none;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1;}
+.topmenu button:active,.topmenu a:active{background:rgba(70,50,130,.85);}
+#game{position:fixed;inset:0;touch-action:none;}
+/* ===== 시작/결과 화면 ===== */
+.screen{position:fixed;inset:0;background:linear-gradient(180deg,#d4e7ff 0%,#ecdcff 50%,#ffe1ef 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;z-index:50;padding:56px 16px 22px;text-align:center;color:#33345e;}
+.screen h1{font-size:clamp(22px,5.6vw,32px);color:#3a2b7a;}
+.screen .desc{color:#5b5c86;font-size:15px;line-height:1.6;}
+.planes{display:flex;gap:8px;flex-wrap:nowrap;justify-content:center;width:100%;max-width:400px;}
+.pcard{background:rgba(255,255,255,.62);border:2px solid rgba(120,110,190,.4);border-radius:16px;padding:12px 6px;flex:1;min-width:0;cursor:pointer;transition:.2s;box-shadow:0 4px 14px rgba(120,110,200,.18);}
+.pcard.sel{border-color:#ffa726;background:rgba(255,214,130,.55);transform:scale(1.05);}
+.pcard .pv{height:52px;display:flex;align-items:center;justify-content:center;}
+.pcard .pv svg{width:46px;height:52px;}
+.pcard .pn{font-weight:800;margin:5px 0 3px;font-size:15px;color:#2f2f5c;}
+.pcard .pd{font-size:11px;color:#5b5c86;line-height:1.35}
+.bigbtn{background:linear-gradient(135deg,#ff6a8e,#ff9a6c);border:none;color:#fff;font-size:20px;font-weight:800;padding:15px 42px;border-radius:30px;cursor:pointer;font-family:inherit;box-shadow:0 6px 18px rgba(255,120,150,.45);}
+.warn{background:rgba(255,150,175,.32);border:1px solid rgba(220,110,140,.5);border-radius:14px;padding:11px 16px;font-size:13.5px;color:#a83a5a;line-height:1.65;}
+/* ===== HUD ===== */
+#hud{position:fixed;top:0;left:0;right:0;padding:10px 12px;display:flex;align-items:center;gap:10px;z-index:20;pointer-events:none;font-weight:700;}
+#timer{font-size:20px;color:#ffd54a;text-shadow:0 2px 6px #000;min-width:56px;}
+#ebarWrap{flex:1;height:16px;background:rgba(255,255,255,.15);border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.3);}
+#ebar{height:100%;width:100%;background:linear-gradient(90deg,#ff5a6e,#ffd54a);transition:width .3s;}
+#score{font-size:15px;color:#9fdcff;text-shadow:0 2px 6px #000;}
+#buff{position:fixed;top:44px;left:12px;font-size:13px;color:#7bffb0;text-shadow:0 2px 6px #000;z-index:20;font-weight:800;}
+#chargeBtn{position:fixed;right:14px;bottom:20px;z-index:20;width:64px;height:64px;border-radius:50%;border:3px solid #ff8ae0;background:rgba(255,60,140,.25);font-size:28px;cursor:pointer;backdrop-filter:blur(3px);}
+#chargeBtn:disabled{opacity:.35;}
+/* ===== 퀴즈 모달 ===== */
+#quiz{position:fixed;inset:0;background:rgba(5,8,25,.9);display:none;align-items:center;justify-content:center;z-index:60;padding:18px;}
+#quiz.show{display:flex;}
+.qbox{background:linear-gradient(160deg,#fff,#eef3ff);color:#1a2340;border-radius:20px;padding:26px 22px;max-width:440px;width:96%;text-align:center;}
+.qbox .qtag{font-size:13px;font-weight:800;color:#7a6bff;margin-bottom:8px;}
+.qbox .qtext{font-size:clamp(17px,4.6vw,21px);font-weight:800;line-height:1.5;margin-bottom:16px;}
+.qopts{display:flex;flex-direction:column;gap:9px;}
+.qopt{background:#fff;border:2px solid #ccd5ee;border-radius:12px;padding:12px;font-size:15.5px;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;color:#1a2340;}
+.qopt.ok{background:#d9ffe3;border-color:#3ecf6e;}
+.qopt.no{background:#ffe0e0;border-color:#ff7a7a;}
+.qmsg{margin-top:12px;font-size:14px;font-weight:700;min-height:20px;color:#556;}
+.rewardRow{display:none;gap:10px;margin-top:14px;justify-content:center;}
+.rewardRow.show{display:flex;}
+.rbtn{flex:1;border:none;border-radius:14px;padding:14px 8px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;color:#fff;}
+.rbtn.b1{background:linear-gradient(135deg,#5aa9ff,#7a6bff);}
+.rbtn.b2{background:linear-gradient(135deg,#ff5a6e,#ff8a5c);}
+</style>
+</head>
+<body>
+<div class="topmenu">
+  <button onclick="location.reload()">🔄 처음부터</button>
+  <a href="index.html">🏠 홈으로</a>
+</div>
+<canvas id="game"></canvas>
+<div id="hud" style="display:none">
+  <div id="timer">3:00</div>
+  <div id="ebarWrap"><div id="ebar"></div></div>
+  <div id="score">0점</div>
+</div>
+<div id="buff"></div>
+<button id="chargeBtn" style="display:none">❤️</button>
+
+<div class="screen" id="startScreen">
+  <h1>✈️ 논문작성배 <span style="color:#ff5a6e">비행기 전투</span></h1>
+  <div class="warn">🎯 이 게임을 통과하면 <b style="color:#1f9e5a">오늘 논문 안 써도 됨!</b><br><b>3분 생존 성공 → 🛋️ 오늘은 쉬기<br>격추당하면 → 📚 논문 쓰러 가기</b></div>
+  <div class="planes">
+    <div class="pcard sel" data-p="0">
+      <div class="pv"><svg viewBox="0 0 60 66"><rect x="21" y="1" width="3.4" height="10" rx="1.7" fill="#ffe14a"/><rect x="28.3" y="1" width="3.4" height="10" rx="1.7" fill="#ffe14a"/><rect x="35.6" y="1" width="3.4" height="10" rx="1.7" fill="#ffe14a"/><polygon points="30,32 6,46 30,40 54,46" fill="#c92f3e"/><polygon points="24,50 36,50 30,61" fill="#c92f3e"/><path d="M30 13 C35 19 35 46 30 52 C25 46 25 19 30 13Z" fill="#ff4d5e"/><circle cx="30" cy="26" r="3.4" fill="#dff2ff"/></svg></div>
+      <div class="pn">쌩쌩호</div><div class="pd">빠른 연사<br>가는 총알</div>
+    </div>
+    <div class="pcard" data-p="1">
+      <div class="pv"><svg viewBox="0 0 60 66"><rect x="24.5" y="0" width="11" height="12" rx="4" fill="#8fd0ff"/><polygon points="30,32 6,46 30,40 54,46" fill="#2a5fc9"/><polygon points="24,50 36,50 30,61" fill="#2a5fc9"/><path d="M30 13 C35 19 35 46 30 52 C25 46 25 19 30 13Z" fill="#3f8bff"/><circle cx="30" cy="26" r="3.4" fill="#dff2ff"/></svg></div>
+      <div class="pn">쿵쿵호</div><div class="pd">느린 연사<br>굵은 총알</div>
+    </div>
+    <div class="pcard" data-p="2">
+      <div class="pv"><svg viewBox="0 0 60 66"><rect x="15" y="3" width="3.4" height="9" rx="1.7" fill="#b6ff7b" transform="rotate(-22 16.7 7.5)"/><rect x="28.3" y="1" width="3.4" height="10" rx="1.7" fill="#b6ff7b"/><rect x="41.6" y="3" width="3.4" height="9" rx="1.7" fill="#b6ff7b" transform="rotate(22 43.3 7.5)"/><polygon points="30,32 6,46 30,40 54,46" fill="#1f9a40"/><polygon points="24,50 36,50 30,61" fill="#1f9a40"/><path d="M30 13 C35 19 35 46 30 52 C25 46 25 19 30 13Z" fill="#33c95a"/><circle cx="30" cy="26" r="3.4" fill="#dff2ff"/></svg></div>
+      <div class="pn">빙글호</div><div class="pd">지그재그 탄<br>넓은 범위</div>
+    </div>
+  </div>
+  <button class="bigbtn" id="goBtn">🚀 출격</button>
+</div>
+
+<div class="screen" id="endScreen" style="display:none">
+  <div id="endEmoji" style="font-size:76px"></div>
+  <h1 id="endTitle"></h1>
+  <div class="desc" id="endDesc"></div>
+  <button class="bigbtn" onclick="location.reload()">🔄 다시 도전</button>
+</div>
+
+<div id="quiz">
+  <div class="qbox">
+    <div class="qtag" id="qTag"></div>
+    <div class="qtext" id="qText"></div>
+    <div class="qopts" id="qOpts"></div>
+    <div class="qmsg" id="qMsg"></div>
+    <div class="rewardRow" id="rewardRow">
+      <button class="rbtn b1" id="rBullet">🔫 총알 6줄<br>(10초)</button>
+      <button class="rbtn b2" id="rEnergy">💖 에너지<br>만땅</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ================= SEM 퀴즈 은행 (4지선다) ================= */
+const SEM_QUIZ=[
+ {q:"매개효과를 검증하기 위해 가장 권장되는 방법은?",o:["Sobel test","단순회귀 반복","부트스트래핑","산점도 확인"],a:2},
+ {q:"CFI의 통과 기준은?",o:[".50 이상",".70 이상",".90 이상","1.0 초과"],a:2},
+ {q:"RMSEA의 수용 기준은?",o:[".08 이하",".30 이하",".90 이상","2.0 이하"],a:0},
+ {q:"SRMR의 양호 기준은?",o:[".08 이하",".50 이상",".90 이상","3 이하"],a:0},
+ {q:"TLI(NNFI)의 통과 기준은?",o:[".10 이하",".90 이상",".50 이상","5 이하"],a:1},
+ {q:"χ²/df (Q값)의 일반적 기준은?",o:["10 이하","3 이하",".90 이상","100 이상"],a:1},
+ {q:"χ² 검정의 대표적 한계는?",o:["계산이 불가능함","표본크기에 민감함","항상 유의하지 않음","적합도와 무관함"],a:1},
+ {q:"부트스트래핑에서 간접효과가 유의하려면?",o:["95% CI에 0이 포함되지 않아야","95% CI에 0이 포함되어야","p값이 1이어야","CI가 음수여야"],a:0},
+ {q:"완전매개란?",o:["직접효과만 유의","매개 투입 시 직접효과가 유의하지 않음","모든 경로 유의","간접효과 없음"],a:1},
+ {q:"부분매개란?",o:["직접·간접효과 모두 유의","간접효과만 유의","아무 효과 없음","측정오차가 큼"],a:0},
+ {q:"조절효과 검증 시 모형에 투입하는 것은?",o:["상호작용항(X×W)","절편항","오차항","더미변수만"],a:0},
+ {q:"상호작용항의 다중공선성을 줄이는 방법은?",o:["표본 축소","평균중심화","변수 삭제","로그변환만"],a:1},
+ {q:"간접효과의 크기는?",o:["a+b","a×b","a−b","a÷b"],a:1},
+ {q:"AVE(평균분산추출)의 기준은?",o:[".5 이상",".05 이하",".9 이하","1 초과"],a:0},
+ {q:"개념신뢰도(CR)의 기준은?",o:[".2 이상",".7 이상",".08 이하","3 이상"],a:1},
+ {q:"Cronbach's α의 일반적 기준은?",o:[".7 이상",".07 이상",".1 이하","10 이상"],a:0},
+ {q:"판별타당도 확인 방법(Fornell-Larcker)은?",o:["AVE > 상관계수 제곱","AVE < 상관계수","CR < .5","α = 0"],a:0},
+ {q:"표준화 요인부하량의 최소 기준은?",o:[".05 이상",".5 이상","5 이상",".01 이하"],a:1},
+ {q:"CFA가 EFA와 다른 점은?",o:["이론에 근거해 구조를 미리 지정","요인 수를 모름","회전이 필수","상관을 못 봄"],a:0},
+ {q:"Anderson & Gerbing의 2단계 접근이란?",o:["측정모형 검증 후 구조모형 검증","구조모형만 두 번","EFA 두 번","무작위 분할"],a:0},
+ {q:"잠재변수란?",o:["직접 측정 불가, 지표로 추정하는 변수","항상 관측되는 변수","오차가 없는 변수","더미변수"],a:0},
+ {q:"외생변수란?",o:["다른 변수의 영향을 받지 않는 변수","항상 종속인 변수","오차항","매개변수"],a:0},
+ {q:"SEM에서 가장 널리 쓰는 추정법은?",o:["최소제곱법만","최대우도법(ML)","눈대중","중앙값 추정"],a:1},
+ {q:"ML 추정의 핵심 가정은?",o:["다변량 정규성","완전 무작위 결측","등간척도 불필요","표본 30 미만"],a:0},
+ {q:"모형 식별의 필요 조건은?",o:["자유도 0 이상","자유도 음수","모수 무한","표본 10 이하"],a:0},
+ {q:"포화모형의 자유도는?",o:["0","1","100","음수"],a:0},
+ {q:"SEM = 요인분석 + ?",o:["회귀분석(경로분석)","t검정","카이제곱만","군집분석"],a:0},
+ {q:"수정지수(MI) 사용 시 주의점은?",o:["이론적 근거가 있어야 함","무조건 다 반영","클수록 무시","표본과 무관"],a:0},
+ {q:"SEM 표본 크기의 일반적 권장치는?",o:["200 이상","10 이상","5 이하","무관"],a:0},
+ {q:"경로계수 유의성 판단 기준(C.R.)은?",o:["±1.96 이상","±0.1 이상","0이면 유의","1 미만"],a:0},
+ {q:"Sobel test의 한계는?",o:["간접효과의 정규성 가정","계산 불가","항상 유의","CI를 제공"],a:0},
+ {q:"조절된 매개분석에 널리 쓰이는 도구는?",o:["PROCESS macro (Hayes)","엑셀 정렬","워드클라우드","막대그래프"],a:0},
+ {q:"모형 비교에 쓰며 작을수록 좋은 지수는?",o:["AIC/BIC","CFI","요인부하량","α"],a:0},
+ {q:"RMSEA .05~.08 구간의 해석은?",o:["수용 가능한 적합도","매우 나쁨","완벽함","판단 불가"],a:0},
+ {q:"집중(수렴)타당도 확인 지표가 아닌 것은?",o:["AVE","CR","요인부하량","VIF"],a:3},
+ {q:"정규성 위반 시 대안적 추정법은?",o:["Bootstrap ML / WLSMV","눈대중 추정","표본 삭제","절편 제거"],a:0}
+];
+let semPool=[...SEM_QUIZ].sort(()=>Math.random()-.5), semIdx=0;
+function nextSem(){if(semIdx>=semPool.length){semPool.sort(()=>Math.random()-.5);semIdx=0;}return semPool[semIdx++];}
+
+/* ================= 사운드 ================= */
+let AC=null;function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}
+function tone(f,d,t,v,w){try{const c=ac(),s=c.currentTime+(w||0),o=c.createOscillator(),g=c.createGain();o.type=t||'square';o.frequency.value=f;g.gain.setValueAtTime(v||.08,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g).connect(c.destination);o.start(s);o.stop(s+d);}catch(e){}}
+
+/* ================= 캔버스 & 상태 ================= */
+const cv=document.getElementById('game'),cx=cv.getContext('2d');
+let W,H;function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}resize();addEventListener('resize',resize);
+const DUR=180, PLANES=[
+ {name:'쌩쌩호',color:'#ff5a6e',rate:110,dmg:1,zig:false},
+ {name:'쿵쿵호',color:'#5aa9ff',rate:260,dmg:3,zig:false},
+ {name:'빙글호',color:'#3ecf6e',rate:150,dmg:1,zig:true}];
+let planeSel=0;
+document.querySelectorAll('.pcard').forEach(c=>c.addEventListener('click',()=>{
+ document.querySelectorAll('.pcard').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');planeSel=+c.dataset.p;}));
+
+const BGS=[
+ {top:'#0a1030',bot:'#1a2a60',deco:'space'},
+ {top:'#2a1040',bot:'#602a50',deco:'sunset'},
+ {top:'#041525',bot:'#0a3550',deco:'sea'}];
+const BG=BGS[Math.floor(Math.random()*3)];
+
+let running=false,paused=false,timeLeft=DUR,energy=100,score=0,kills=0,quizRight=0,quizTotal=0;
+let px=0,py=0,rows=1,rowExp=0,lastShot=0,chargeCD=0;
+let bullets=[],enemies=[],ebullets=[],stars=[],parts=[],boss=null,bossPhase=0;
+let lastT=0,spawnT=0,starT=0,decoSeeds=[];
+for(let i=0;i<40;i++)decoSeeds.push({x:Math.random(),y:Math.random(),s:Math.random()*2+1,v:Math.random()*40+20});
+
+const hud=document.getElementById('hud'),timerEl=document.getElementById('timer'),ebar=document.getElementById('ebar'),
+scoreEl=document.getElementById('score'),buffEl=document.getElementById('buff'),chargeBtn=document.getElementById('chargeBtn');
+
+document.getElementById('goBtn').addEventListener('click',()=>{
+ ac();document.getElementById('startScreen').style.display='none';
+ hud.style.display='flex';chargeBtn.style.display='block';
+ px=W/2;py=H*.82;running=true;lastT=performance.now();requestAnimationFrame(loop);
+});
+
+/* ===== 조작: 드래그 ===== */
+let dragging=false;
+cv.addEventListener('pointerdown',e=>{
+ if(!running||paused)return;
+ /* 별 탭 판정 */
+ for(const s of stars){if(Math.hypot(e.clientX-s.x,e.clientY-s.y)<44){s.dead=true;openMathQuiz();return;}}
+ dragging=true;
+});
+cv.addEventListener('pointermove',e=>{if(dragging&&running&&!paused){px=Math.max(24,Math.min(W-24,e.clientX));py=Math.max(H*.3,Math.min(H-30,e.clientY-46));}});
+addEventListener('pointerup',()=>dragging=false);
+
+/* ================= 메인 루프 ================= */
+function loop(t){
+ if(!running)return;
+ const dt=Math.min((t-lastT)/1000,.05);lastT=t;
+ if(!paused)update(dt);
+ draw();
+ requestAnimationFrame(loop);
+}
+function update(dt){
+ timeLeft-=dt;
+ if(timeLeft<=0){win();return;}
+ timerEl.textContent=Math.floor(timeLeft/60)+':'+String(Math.floor(timeLeft%60)).padStart(2,'0');
+ /* 총알 버프 만료 */
+ if(rowExp>0){rowExp-=dt;buffEl.textContent='🔫 총알 '+rows+'줄 · '+Math.ceil(rowExp)+'초';
+  if(rowExp<=0){rows=1;buffEl.textContent='';}}
+ if(chargeCD>0){chargeCD-=dt;chargeBtn.disabled=true;chargeBtn.textContent=Math.ceil(chargeCD);}
+ else{chargeBtn.disabled=false;chargeBtn.textContent='❤️';}
+ /* 발사 */
+ lastShot+=dt*1000;
+ const P=PLANES[planeSel];
+ if(lastShot>=P.rate){lastShot=0;
+  for(let r=0;r<rows;r++){const off=(r-(rows-1)/2)*14;
+   bullets.push({x:px+off,y:py-26,vy:-620,vx:P.zig?(r%2?160:-160):0,zig:P.zig,ph:Math.random()*6,dmg:P.dmg});}
+  tone(880,.04,'square',.03);}
+ bullets.forEach(b=>{b.y+=b.vy*dt;if(b.zig){b.ph+=dt*10;b.x+=Math.sin(b.ph)*b.vx*dt;}});
+ bullets=bullets.filter(b=>b.y>-30&&!b.dead);
+ /* 적 스폰: 0.4초 (극한+) */
+ spawnT+=dt;
+ const rate=boss?0.75:0.4;
+ if(spawnT>=rate){spawnT=0;
+  const kind=Math.random();
+  enemies.push({x:Math.random()*(W-60)+30,y:-40,vy:(Math.random()*90+180)*1.7,
+   hp:kind>.75?5:2,big:kind>.75,shootT:Math.random()*.6,wob:Math.random()*6,wobA:Math.random()*40+10});}
+ enemies.forEach(en=>{
+  en.y+=en.vy*dt;en.wob+=dt*2;en.x+=Math.sin(en.wob)*en.wobA*dt;
+  en.shootT-=dt;
+  if(en.shootT<=0&&en.y>0&&en.y<H*.6){en.shootT=1.3+Math.random();
+   const a=Math.atan2(py-en.y,px-en.x);
+   ebullets.push({x:en.x,y:en.y,vx:Math.cos(a)*330,vy:Math.sin(a)*330});}});
+ /* 보스 (60초 경과, 140초 경과 2회) */
+ const elapsed=DUR-timeLeft;
+ if(!boss&&((bossPhase===0&&elapsed>55)||(bossPhase===1&&elapsed>135))){
+  bossPhase++;boss={x:W/2,y:-90,hp:120*bossPhase,maxhp:120*bossPhase,dir:1,shootT:1};
+  tone(150,.6,'sawtooth',.12);}
+ if(boss){
+  if(boss.y<90)boss.y+=60*dt;
+  boss.x+=boss.dir*130*dt;if(boss.x<70||boss.x>W-70)boss.dir*=-1;
+  boss.shootT-=dt;
+  if(boss.shootT<=0){boss.shootT=0.55;
+   for(let i=-2;i<=2;i++){const a=Math.atan2(py-boss.y,px-boss.x)+i*.22;
+    ebullets.push({x:boss.x,y:boss.y+30,vx:Math.cos(a)*300,vy:Math.sin(a)*300});}}}
+ ebullets.forEach(b=>{b.x+=b.vx*dt;b.y+=b.vy*dt;});
+ ebullets=ebullets.filter(b=>b.x>-20&&b.x<W+20&&b.y>-20&&b.y<H+20&&!b.dead);
+ /* 별 아이템 */
+ starT+=dt;
+ if(starT>7){starT=0;stars.push({x:Math.random()*(W-100)+50,y:-30,vy:110,ph:0});}
+ stars.forEach(s=>{s.y+=s.vy*dt;s.ph+=dt*4;});
+ stars=stars.filter(s=>s.y<H+40&&!s.dead);
+ /* 충돌: 내 총알 → 적/보스 */
+ bullets.forEach(b=>{
+  enemies.forEach(en=>{if(!en.dead&&Math.abs(b.x-en.x)<(en.big?34:24)&&Math.abs(b.y-en.y)<(en.big?34:24)){
+   b.dead=true;en.hp-=b.dmg;
+   if(en.hp<=0){en.dead=true;kills++;score+=en.big?30:10;boom(en.x,en.y,en.big?18:10);tone(220,.1,'square',.06);}}});
+  if(boss&&Math.abs(b.x-boss.x)<58&&Math.abs(b.y-boss.y)<44){b.dead=true;boss.hp-=b.dmg;
+   if(boss.hp<=0){score+=200;boom(boss.x,boss.y,40);tone(120,.5,'sawtooth',.15);boss=null;}}});
+ enemies=enemies.filter(en=>!en.dead&&en.y<H+50);
+ /* 충돌: 적탄/적기 → 나 */
+ ebullets.forEach(b=>{if(Math.hypot(b.x-px,b.y-py)<22){b.dead=true;hit(15);}});
+ enemies.forEach(en=>{if(!en.dead&&Math.hypot(en.x-px,en.y-py)<(en.big?42:32)){en.dead=true;hit(30);boom(en.x,en.y,12);}});
+ /* 파티클 */
+ parts.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.l-=dt;});
+ parts=parts.filter(p=>p.l>0);
+ scoreEl.textContent=score+'점';
+}
+function hit(d){energy-=d;if(navigator.vibrate)navigator.vibrate(60);tone(90,.2,'sawtooth',.12);
+ ebar.style.width=Math.max(0,energy)+'%';
+ if(energy<=0)lose();}
+function boom(x,y,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,v=Math.random()*220+60;
+ parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:Math.random()*.5+.2,c:['#ffd54a','#ff8a5c','#ff5a6e'][i%3]});}}
+
+/* ================= 그리기 ================= */
+function draw(){
+ const g=cx.createLinearGradient(0,0,0,H);g.addColorStop(0,BG.top);g.addColorStop(1,BG.bot);
+ cx.fillStyle=g;cx.fillRect(0,0,W,H);
+ /* 배경 데코 (스크롤) */
+ const t=performance.now()/1000;
+ decoSeeds.forEach(d=>{const y=((d.y*H)+t*d.v)%H;
+  cx.globalAlpha=.5;cx.fillStyle=BG.deco==='sunset'?'#ffb0a0':'#cfe0ff';
+  cx.beginPath();cx.arc(d.x*W,y,d.s,0,6.28);cx.fill();cx.globalAlpha=1;});
+ /* 별 아이템 */
+ stars.forEach(s=>{cx.save();cx.translate(s.x,s.y);cx.rotate(Math.sin(s.ph)*.3);
+  cx.font='38px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('⭐',0,0);cx.restore();});
+ /* 적 */
+ enemies.forEach(en=>{cx.font=(en.big?'46px':'32px')+' serif';cx.textAlign='center';cx.textBaseline='middle';
+  cx.fillText(en.big?'👾':'🛸',en.x,en.y);});
+ /* 보스 */
+ if(boss){cx.font='72px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('👹',boss.x,boss.y);
+  cx.fillStyle='rgba(0,0,0,.5)';cx.fillRect(boss.x-55,boss.y-58,110,8);
+  cx.fillStyle='#ff5a6e';cx.fillRect(boss.x-55,boss.y-58,110*boss.hp/boss.maxhp,8);}
+ /* 적탄 */
+ cx.fillStyle='#ff7a7a';ebullets.forEach(b=>{cx.beginPath();cx.arc(b.x,b.y,6,0,6.28);cx.fill();});
+ /* 내 총알 */
+ const P=PLANES[planeSel];cx.fillStyle=P.color;
+ bullets.forEach(b=>{cx.fillRect(b.x-(P.dmg>1?5:2.5),b.y-10,(P.dmg>1?10:5),16);});
+ /* 내 비행기 */
+ cx.save();cx.translate(px,py);
+ cx.font='44px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('🛩️',0,0);
+ cx.fillStyle=P.color;cx.beginPath();cx.arc(0,20,5,0,6.28);cx.fill();cx.restore();
+ /* 파티클 */
+ parts.forEach(p=>{cx.globalAlpha=Math.min(1,p.l*3);cx.fillStyle=p.c;cx.fillRect(p.x-3,p.y-3,6,6);cx.globalAlpha=1;});
+}
+
+/* ================= 퀴즈 (수학=별 / SEM=충전) ================= */
+const quiz=document.getElementById('quiz'),qTag=document.getElementById('qTag'),qText=document.getElementById('qText'),
+qOpts=document.getElementById('qOpts'),qMsg=document.getElementById('qMsg'),rewardRow=document.getElementById('rewardRow');
+
+function openMathQuiz(){
+ paused=true;quizTotal++;
+ const a=Math.floor(Math.random()*80)+17,b=Math.floor(Math.random()*80)+16;
+ const mul=Math.random()<.4, m1=Math.floor(Math.random()*13)+12, m2=Math.floor(Math.random()*8)+3;
+ const ans=mul?m1*m2:a+b, txt=mul?`${m1} × ${m2} = ?`:`${a} + ${b} = ?`;
+ const opts=[ans];
+ while(opts.length<4){const w=ans+[-11,-10,-2,-1,1,2,10,11][Math.floor(Math.random()*8)];if(w>0&&!opts.includes(w))opts.push(w);}
+ opts.sort(()=>Math.random()-.5);
+ showQuiz('⭐ 암산 도전!',txt,opts.map(String),opts.indexOf(ans),ok=>{
+  if(ok){quizRight++;rows=Math.min(6,rows+1);rowExp=10;energy=Math.min(100,energy+15);ebar.style.width=energy+'%';}
+  closeQuiz();});
+}
+chargeBtn.addEventListener('click',()=>{
+ if(chargeBtn.disabled||!running||paused)return;
+ paused=true;quizTotal++;
+ const q=nextSem();
+ showQuiz('❤️ SEM 퀴즈 충전!',q.q,q.o.map((o,i)=>`${'①②③④'[i]} ${o}`),q.a,ok=>{
+  if(ok){quizRight++;rewardRow.classList.add('show');qMsg.textContent='보상을 선택하세요!';}
+  else closeQuiz();});
+ chargeCD=20;
+});
+document.getElementById('rBullet').addEventListener('click',()=>{rows=6;rowExp=10;closeQuiz();});
+document.getElementById('rEnergy').addEventListener('click',()=>{energy=100;ebar.style.width='100%';closeQuiz();});
+
+function showQuiz(tag,text,optLabels,ansIdx,done){
+ qTag.textContent=tag;qText.textContent=text;qMsg.textContent='';rewardRow.classList.remove('show');
+ qOpts.innerHTML='';
+ optLabels.forEach((lab,i)=>{
+  const b=document.createElement('button');b.className='qopt';b.textContent=lab;
+  b.addEventListener('click',()=>{
+   [...qOpts.children].forEach(c=>c.style.pointerEvents='none');
+   if(i===ansIdx){b.classList.add('ok');tone(880,.15,'triangle',.15);tone(1175,.2,'triangle',.15,.12);
+    qMsg.textContent='🎉 정답!';setTimeout(()=>done(true),700);}
+   else{b.classList.add('no');qOpts.children[ansIdx].classList.add('ok');tone(200,.3,'sawtooth',.1);
+    qMsg.textContent='아쉽! 정답은 '+optLabels[ansIdx];setTimeout(()=>done(false),1600);}
+  });
+  qOpts.appendChild(b);});
+ quiz.classList.add('show');
+}
+function closeQuiz(){quiz.classList.remove('show');paused=false;lastT=performance.now();}
+
+/* ================= 종료 ================= */
+function endGame(win,emoji,title,desc){
+ running=false;hud.style.display='none';chargeBtn.style.display='none';quiz.classList.remove('show');
+ document.getElementById('endEmoji').textContent=emoji;
+ document.getElementById('endTitle').textContent=title;
+ document.getElementById('endDesc').innerHTML=desc+`<br><br>격추 ${kills}기 · ${score}점 · 퀴즈 ${quizRight}/${quizTotal}`;
+ document.getElementById('endScreen').style.display='flex';
+}
+function win(){tone(523,.3,'triangle',.2);tone(659,.3,'triangle',.2,.15);tone(784,.5,'triangle',.2,.3);
+ endGame(true,'🛋️','오늘은 쉬기!!','3분 생존 성공! 지옥의 하늘을 정복했습니다.<br>당당하게 쉬세요 🎉');}
+function lose(){tone(300,.4,'sawtooth',.12);tone(200,.6,'sawtooth',.12,.35);
+ endGame(false,'📚','논문 쓰러 가기...','격추당했습니다. 하늘은 험난했지만<br>논문은 더 험난... 화이팅입니다 🔥');}
+</script>
+</body>
+</html>
